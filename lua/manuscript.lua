@@ -1,35 +1,54 @@
 local M = {}
 
-M.open_floating_window = function()
-  local buf = vim.api.nvim_create_buf(false, true)
+local state = {
+  floating = {
+    buf = -1,
+    win = -1,
+  }
+}
+
+local function create_floating_window(opts)
+  opts = opts or {}
+
+  local buf = nil
+
+  if vim.api.nvim_buf_is_valid(opts.buf) then
+    buf = opts.buf
+  else
+    buf = vim.api.nvim_create_buf(false, true)
+  end
 
   local ui = vim.api.nvim_list_uis()[1]
-  local width = math.floor(vim.o.columns * 0.8) -- 80% of screen width
-  local height = math.floor(vim.o.lines * 0.8)  -- 80% of screen height
+  local width = math.floor(vim.o.columns * 0.8)
+  local height = math.floor(vim.o.lines * 0.8)
 
-  local opts = {
-    relative = 'editor',                       -- Position relative to the whole editor
-    width = width,                             -- Width of the window
-    height = height,                           -- Height of the window
-    col = math.ceil((ui.width - width) / 2),   -- Column position (left to right)
-    row = math.ceil((ui.height - height) / 2), -- Row position (top to bottom)
-    style = 'minimal',                         -- Removes line numbers, sign columns, etc.
-    border = 'rounded',                        -- Adds a pretty border (can be 'single', 'double', etc.)
+  local win_config = {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = math.ceil((ui.width - width) / 2),
+    row = math.ceil((ui.height - height) / 2),
+    style = 'minimal',
+    border = 'rounded',
   }
 
-  vim.api.nvim_open_win(buf, true, opts)
+  local win = vim.api.nvim_open_win(buf, true, win_config)
+  return { buf = buf, win = win }
 end
 
-M.close_floating_window = function()
-  vim.api.nvim_win_close(0, true)
+
+M.toggle_window = function()
+  if not vim.api.nvim_win_is_valid(state.floating.win) then
+    state.floating = create_floating_window({ buf = state.floating.buf })
+  else
+    vim.api.nvim_win_hide(state.floating.win)
+  end
 end
 
 function M.setup(opts)
   opts = opts or {}
 
-  vim.api.nvim_create_user_command("ManuscriptOpen", M.open_floating_window, {})
-  vim.keymap.set("n", "<leader>mo", M.open_floating_window, {})
-  vim.keymap.set("n", "<leader>mc", M.close_floating_window, {})
+  vim.keymap.set("n", "<leader>m", M.toggle_window, {})
 end
 
 return M
