@@ -1,6 +1,7 @@
 # Manuscript
 
-A lightweight, floating notepad for Neovim designed for quick thoughts, scratchpads, and Markdown drafting without breaking your flow.
+A lightweight, floating notepad for Neovim designed for quick thoughts,
+scratchpads, and Markdown drafting without breaking your flow.
 
 ---
 

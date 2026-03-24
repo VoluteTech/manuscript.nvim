@@ -33,6 +33,8 @@ local function create_floating_window(opts)
   }
 
   local win = vim.api.nvim_open_win(buf, true, win_config)
+  vim.wo[win].number = true
+  vim.wo[win].relativenumber = true
   return { buf = buf, win = win }
 end
 
@@ -45,10 +47,6 @@ M.toggle_window = function()
   end
 end
 
-function M.setup(opts)
-  opts = opts or {}
-
-  vim.keymap.set("n", "<leader>m", M.toggle_window, {})
-end
+vim.keymap.set("n", "<leader>m", M.toggle_window, {})
 
 return M
