@@ -1,5 +1,6 @@
 local ui = require("manuscript.ui")
 local storage = require("manuscript.storage")
+local utils = require("manuscript.utils")
 
 local M = {}
 
@@ -12,6 +13,27 @@ M.state = {
 
 M.setup = function(opts)
   M.config = vim.tbl_deep_extend("force", { vault = "~/personal/vault" }, opts or {})
+end
+
+M.clear_draft = function()
+  local filename = utils.get_current_directory()
+
+  local vault = vim.fn.expand(M.config.vault)
+  local full_path = vault:gsub("/$", "") .. "/" .. filename .. "-draft.md"
+
+  local result = vim.fn.delete(full_path)
+
+  if result == 0 then
+    vim.notify("Draft deleted: " .. filename, vim.log.levels.INFO)
+  else
+    vim.notify("Could not find draft to delete at: " .. full_path, vim.log.levels.WARN)
+  end
+
+  if vim.api.nvim_buf_is_valid(M.state.floating.buf) then
+    vim.api.nvim_buf_set_lines(M.state.floating.buf, 0, -1, false, {})
+    ---@diagnostic disable-next-line: deprecated
+    vim.api.nvim_buf_set_option(M.state.floating.buf, 'modified', false)
+  end
 end
 
 M.toggle = function()
