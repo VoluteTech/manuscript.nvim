@@ -2,11 +2,11 @@ local M = {}
 
 M.create_float_buffer = function()
   local buf = vim.api.nvim_create_buf(false, false)
-
   vim.api.nvim_buf_set_name(buf, "manuscript-buffer")
+  ---@diagnostic disable-next-line: deprecated
   vim.api.nvim_buf_set_option(buf, 'filetype', 'markdown')
+  ---@diagnostic disable-next-line: deprecated
   vim.api.nvim_buf_set_option(buf, 'buftype', 'acwrite')
-
   return buf
 end
 
@@ -23,6 +23,8 @@ M.open_window = function(buf)
     row = math.ceil((ui.height - height) / 2.5),
     style = 'minimal',
     border = 'rounded',
+    title = 'Manuscript',
+    title_pos = 'center',
   }
 
   local win = vim.api.nvim_open_win(buf, true, win_config)
