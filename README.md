@@ -7,6 +7,7 @@ scratchpads, and Markdown drafting without breaking your flow.
 
 ## Features
 - Centered Floating UI: A focused, aesthetic writing space that stays out of your way
+- Save your note in your obsidian vault or wherever you want
 
 ## Installation
 
@@ -16,7 +17,7 @@ Using ***lazy.nvim***
 {
     "VoluteTech/manuscript.nvim", version = "*",
     config = function()
-        -- optional config
+        vault_path = "~/personal/vault", -- Pass your preferences here
     end,
 }
 ```
