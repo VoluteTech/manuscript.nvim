@@ -24,6 +24,11 @@ M.toggle = function()
     local buf = ui.create_float_buffer()
     M.state.floating.buf = buf
 
+    local content = storage.load_last_draft(M.config.vault)
+    if content then
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+    end
+
     vim.api.nvim_create_autocmd("BufWriteCmd", {
       group = vim.api.nvim_create_augroup("save-file", {}),
       buffer = M.state.floating.buf,

@@ -2,6 +2,17 @@ local utils = require("manuscript.utils")
 
 local M = {}
 
+M.load_last_draft = function(vault_path)
+  local expanded_path = vim.fn.expand(vault_path)
+  local filename = utils.get_current_directory() .. "-draft.md"
+  local full_filepath = expanded_path .. "/" .. filename
+
+  if vim.fn.filereadable(full_filepath) == 1 then
+    return vim.fn.readfile(full_filepath)
+  end
+  return nil
+end
+
 M.save_file = function(buf, vault_path)
   local expanded_path = vim.fn.expand(vault_path)
 
