@@ -28,6 +28,7 @@ M.save_file = function(buf, vault_path)
   local ok, err = pcall(vim.fn.writefile, lines, full_filepath)
 
   if ok then
+    ---@diagnostic disable-next-line: deprecated
     vim.api.nvim_buf_set_option(buf, 'modified', false)
     vim.notify("Manuscript saved: " .. filename, vim.log.levels.INFO)
   else
