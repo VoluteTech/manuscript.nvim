@@ -2,4 +2,5 @@
 
 test:
 	nvim --headless \
-		-c "PlenaryBustedDirectory tests/"
+		-u scripts/minimal_init.vim \
+		-c "PlenaryBustedDirectory tests/ {minimal_init = 'scripts/minimal_init.vim'}"
