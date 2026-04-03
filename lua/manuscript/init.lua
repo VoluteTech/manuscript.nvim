@@ -1,66 +1,113 @@
 local ui = require("manuscript.ui")
 local storage = require("manuscript.storage")
-local utils = require("manuscript.utils")
 
-local M = {}
+---@class ManuscriptApp
+---@field float ManuscriptFloat
+---@field store ManuscriptStore
+local ManuscriptApp = {}
+ManuscriptApp.__index = ManuscriptApp
 
-M.state = {
-  floating = {
-    buf = -1,
-    win = -1,
-  },
-}
+---@class ManuscriptAppConfig
+---@field vault string
 
-M.setup = function(opts)
-  M.config = vim.tbl_deep_extend("force", { vault = "~/personal/vault" }, opts or {})
+---@param vault_path string
+---@return ManuscriptApp
+function ManuscriptApp.new(vault_path)
+  local self = setmetatable({}, ManuscriptApp)
+
+  local vault = vault_path or "~/personal/vault"
+
+  self.float = ui.new()
+  self.store = storage.new(vault)
+
+  return self
 end
 
-M.clear_draft = function()
-  local filename = utils.get_current_directory()
+---Singleton instance
+local _instance = nil
 
-  local vault = vim.fn.expand(M.config.vault)
-  local full_path = vault:gsub("/$", "") .. "/" .. filename .. "-draft.md"
+---Get or create the singleton instance
+---@return ManuscriptApp
+function ManuscriptApp.get()
+  if not _instance then
+    _instance = ManuscriptApp.new()
+  end
+  return _instance
+end
 
-  local result = vim.fn.delete(full_path)
+---@param opts ManuscriptAppConfig|nil
+function ManuscriptApp.setup(opts)
+  opts = opts or {}
+  local vault = opts.vault or opts.vault_path or "~/personal/vault"
+  local app = ManuscriptApp.new(vault)
+  _instance = app
+  app:setup()
+end
 
-  if result == 0 then
-    vim.notify("Draft deleted: " .. filename, vim.log.levels.INFO)
+function ManuscriptApp:toggle()
+  if self.float:is_open() then
+    self.float:close()
   else
-    vim.notify("Could not find draft to delete at: " .. full_path, vim.log.levels.WARN)
-  end
-
-  if vim.api.nvim_buf_is_valid(M.state.floating.buf) then
-    vim.api.nvim_buf_set_lines(M.state.floating.buf, 0, -1, false, {})
-    ---@diagnostic disable-next-line: deprecated
-    vim.api.nvim_buf_set_option(M.state.floating.buf, 'modified', false)
+    self:open()
   end
 end
 
-M.toggle = function()
-  if vim.api.nvim_win_is_valid(M.state.floating.win) then
-    vim.api.nvim_win_hide(M.state.floating.win)
-    return
-  end
+function ManuscriptApp:open()
+  local content = self.store:load()
+  self.float:open(content)
+  self:setup_autocmd()
+  self:setup_bufhidden()
+end
 
-  if not vim.api.nvim_buf_is_valid(M.state.floating.buf) then
-    local buf = ui.create_float_buffer()
-    M.state.floating.buf = buf
-
-    local content = storage.load_last_draft(M.config.vault)
-    if content then
-      vim.api.nvim_buf_set_lines(buf, 0, -1, false, content)
+function ManuscriptApp:setup_bufhidden()
+  vim.api.nvim_create_autocmd("BufHidden", {
+    buffer = self.float.buf_id,
+    once = true,
+    callback = function()
+      vim.api.nvim_buf_set_option(self.float.buf_id, 'modified', false)
     end
-
-    vim.api.nvim_create_autocmd("BufWriteCmd", {
-      group = vim.api.nvim_create_augroup("save-file", {}),
-      buffer = M.state.floating.buf,
-      callback = function()
-        storage.save_file(buf, M.config.vault)
-      end
-    })
-  end
-
-  M.state.floating.win = ui.open_window(M.state.floating.buf)
+  })
 end
 
-return M
+function ManuscriptApp:close()
+  self.float:close()
+end
+
+function ManuscriptApp:clear_draft()
+  local ok, info = self.store:delete()
+
+  if ok then
+    vim.notify("Draft deleted: " .. info, vim.log.levels.INFO)
+  else
+    vim.notify("Could not find draft to delete at: " .. info, vim.log.levels.WARN)
+  end
+
+  self.float:clear_buffer()
+end
+
+---Get the buffer handle
+---@return number
+function ManuscriptApp:get_buffer()
+  return self.float:get_buffer()
+end
+
+---Setup keymaps
+function ManuscriptApp:setup(key)
+  key = key or "<leader>m"
+
+  vim.keymap.set("n", key, function()
+    self:toggle()
+  end, {})
+end
+
+function ManuscriptApp:setup_autocmd()
+  vim.api.nvim_create_autocmd("BufWriteCmd", {
+    group = vim.api.nvim_create_augroup("manuscript-save", {}),
+    buffer = self.float.buf_id,
+    callback = function()
+      self.store:save(self.float.buf_id)
+    end
+  })
+end
+
+return ManuscriptApp
