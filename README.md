@@ -26,7 +26,7 @@ Using ***lazy.nvim***
 
 ## Usage
 
-Try running `ManuscriptToggle` to see if manuscript.nvim is correctly installed.
+Try running `:ManuscriptToggle` to see if manuscript.nvim is correctly installed.
 
 ```lua
 local manuscript = require("manuscript")
