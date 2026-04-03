@@ -98,6 +98,14 @@ function ManuscriptApp:setup(key)
   vim.keymap.set("n", key, function()
     self:toggle()
   end, {})
+
+  vim.api.nvim_create_user_command("ManuscriptToggle", function()
+    ManuscriptApp.get():toggle()
+  end, {})
+
+  vim.api.nvim_create_user_command("ManuscriptClear", function()
+    ManuscriptApp.get():clear_draft()
+  end, {})
 end
 
 function ManuscriptApp:setup_autocmd()
