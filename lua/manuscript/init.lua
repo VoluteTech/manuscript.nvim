@@ -8,17 +8,21 @@ local ManuscriptApp = {}
 ManuscriptApp.__index = ManuscriptApp
 
 ---@class ManuscriptAppConfig
----@field vault string
+---@field vault_path string
+---@field border string|string[]
 
----@param vault_path string
+---@param opts ManuscriptAppConfig
 ---@return ManuscriptApp
-function ManuscriptApp.new(vault_path)
+function ManuscriptApp.new(opts)
+  opts = opts or {}
   local self = setmetatable({}, ManuscriptApp)
 
-  local vault = vault_path or "~/personal/vault"
+  local vault = opts.vault_path or "~/personal/vault"
+  local border = opts.border
 
-  self.float = ui.new()
+  self.float = ui.new(border)
   self.store = storage.new(vault)
+  self.opts = opts
 
   return self
 end
@@ -38,8 +42,7 @@ end
 ---@param opts ManuscriptAppConfig|nil
 function ManuscriptApp.setup(opts)
   opts = opts or {}
-  local vault = opts.vault or opts.vault_path or "~/personal/vault"
-  local app = ManuscriptApp.new(vault)
+  local app = ManuscriptApp.new(opts)
   _instance = app
   app:setup()
 end
@@ -91,14 +94,7 @@ function ManuscriptApp:get_buffer()
   return self.float:get_buffer()
 end
 
----Setup keymaps
-function ManuscriptApp:setup(key)
-  key = key or "<leader>m"
-
-  vim.keymap.set("n", key, function()
-    self:toggle()
-  end, {})
-
+function ManuscriptApp:setup()
   vim.api.nvim_create_user_command("ManuscriptToggle", function()
     ManuscriptApp.get():toggle()
   end, {})

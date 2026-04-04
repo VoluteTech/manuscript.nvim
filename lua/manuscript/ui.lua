@@ -1,33 +1,56 @@
 ---@class ManuscriptFloat
 ---@field buf_id number
 ---@field win_id number
+---@field border string|string[]|nil
 local ManuscriptFloat = {}
 ManuscriptFloat.__index = ManuscriptFloat
 
 ---@private
-local function create_win_config()
+---@param border string|string[]|nil
+---@return string[]|nil
+local function resolve_border(border)
+  if border == nil or border == "rounded" then
+    return "rounded"
+  elseif border == "single" then
+    return "single"
+  elseif border == "double" then
+    return "double"
+  elseif border == "none" then
+    return nil
+  elseif type(border) == "table" then
+    return border
+  end
+  return { "╔", "═", "╗", "║", "╝", "═", "╚", "║" }
+end
+
+---@private
+local function create_win_config(border)
   local ui = vim.api.nvim_list_uis()[1]
   local width = math.floor(vim.o.columns * 0.8)
   local height = math.floor(vim.o.lines * 0.7)
 
-  return {
+  local config = {
     relative = 'editor',
     width = width,
     height = height,
     col = math.ceil((ui.width - width) / 2),
     row = math.ceil((ui.height - height) / 2.5),
     style = 'minimal',
-    border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+    border = resolve_border(border),
     title = ' Manuscript ',
     title_pos = 'center',
   }
+
+  return config
 end
 
+---@param border string|string[]|nil
 ---@return ManuscriptFloat
-function ManuscriptFloat.new()
+function ManuscriptFloat.new(border)
   local self = setmetatable({}, ManuscriptFloat)
   self.buf_id = -1
   self.win_id = -1
+  self.border = border
   return self
 end
 
@@ -65,7 +88,7 @@ function ManuscriptFloat:open(content)
     end
   end
 
-  local win_config = create_win_config()
+  local win_config = create_win_config(self.border)
   self.win_id = vim.api.nvim_open_win(self.buf_id, true, win_config)
   vim.wo[self.win_id].number = true
   vim.wo[self.win_id].relativenumber = true
