@@ -17,8 +17,8 @@ local function create_win_config()
     col = math.ceil((ui.width - width) / 2),
     row = math.ceil((ui.height - height) / 2.5),
     style = 'minimal',
-    border = 'rounded',
-    title = 'Manuscript',
+    border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+    title = ' Manuscript ',
     title_pos = 'center',
   }
 end
