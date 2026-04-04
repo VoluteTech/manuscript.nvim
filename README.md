@@ -3,8 +3,6 @@
 A lightweight, floating notepad for Neovim designed for quick thoughts,
 scratchpads, and Markdown drafting without breaking your flow.
 
----
-
 ## Features
 
 - Centered Floating UI: A focused, aesthetic writing space that stays out of your way
@@ -19,7 +17,10 @@ Using ***lazy.nvim***
 {
     "VoluteTech/manuscript.nvim", version = "*",
     config = function()
-        vault_path = "~/personal/vault", -- Pass your preferences here
+        require("manuscript").setup({
+            vault_path = "~/personal/vault", -- Pass your preferences here
+            border = "rounded", -- The default border is a custom one
+        })
     end,
 }
 ```
@@ -29,9 +30,8 @@ Using ***lazy.nvim***
 Try running `:ManuscriptToggle` to see if manuscript.nvim is correctly installed.
 
 ```lua
-local manuscript = require("manuscript")
-vim.keymap.set("n", "<leader>mo", app.get():toggle(), { desc = "Toggle manuscript window" })
-vim.keymap.set("n", "<leader>md", app.get():clear_draft(), { desc = "Clear the current draft" })
+vim.keymap.set("n", "<leader>mo", ":ManuscriptToggle<CR>", { desc = "Toggle manuscript window" })
+vim.keymap.set("n", "<leader>md", ":ManuscriptClear<CR>", { desc = "Clear the current draft" })
 ```
 
 ## Contribution
